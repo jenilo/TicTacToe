@@ -42,11 +42,13 @@ class TicTacToe() {
         if (turn == player1) turn = player2 else turn = player1
     }
     fun movement(position: String){ //act gameboard
-        Log.i("ERROR", "Position: ${position}")
-        gameboard[position] = turn.getSymbol()
-        Log.i("ERROR", "username= ${turn.getUsername()}")
-        Log.i("ERROR", "Value g[]= ${gameboard[position.toString()].toString()}")
-        Log.i("ERROR", "g= ${gameboard.toString()}")
+        //Log.i("ERROR", "Position: ${position}")
+        //evita sobreescribir un dato
+        if (gameboard[position] == 0)
+            gameboard[position] = turn.getSymbol()
+        //Log.i("ERROR", "username= ${turn.getUsername()}")
+        //Log.i("ERROR", "Value g[]= ${gameboard[position.toString()].toString()}")
+        //Log.i("ERROR", "g= ${gameboard.toString()}")
         //return gameboard[position.toString()]!!.toInt()
     }
 
