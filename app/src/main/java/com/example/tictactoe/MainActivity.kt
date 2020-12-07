@@ -41,9 +41,9 @@ class MainActivity : AppCompatActivity() {
         myRefGameboard.addChildEventListener(object : ChildEventListener {
             override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
                 val newComment = dataSnapshot.getValue()
-                val commentKey = dataSnapshot.key
-                Log.i("ERROR","key: $commentKey")
-                game.movement(commentKey!!.toInt())
+                val commentKey = dataSnapshot.key!!.toString()
+                Log.i("ERROR","keyDS: $commentKey")
+                game.movement(commentKey)
                 updateGameboard()
                 enableGameboard(game.getTurn().getUsername() == username)
                 //Log.i("ERROR", "value: ${game.getTurn().getUsername() == username}")
@@ -54,9 +54,11 @@ class MainActivity : AppCompatActivity() {
             override fun onCancelled(databaseError: DatabaseError) {}
         })
 
+        //cada vez que se actualiza el juego
         myRefTurn.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val turn = dataSnapshot.getValue()
+                val turn = dataSnapshot.getValue().toString()
+                game.setTurn(turn)
                 if (turn == username){
                     enableGameboard(true)
                 }
@@ -67,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             override fun onCancelled(databaseError: DatabaseError) {}
         })
 
-        //para cuando se une un jugador2 o se le suman puntos
+        //para cuando se une un jugador2 e inicia el juego el jugador1
         myRefPlayer2.addChildEventListener(object : ChildEventListener {
             override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
                 if(dataSnapshot.key == "username") {//si se actualizo el username le pone el nombre
@@ -75,8 +77,6 @@ class MainActivity : AppCompatActivity() {
                     textViewUsername2.text = usernamePlayer2
                     game.setPlayer2(usernamePlayer2)
                 }
-                else if (dataSnapshot.key == "points")
-                    textViewPoints2.text = dataSnapshot.getValue<String>()
                 //aqui tienen que habilitarse los botones del tablero con enableButtons()
                 startGame()
             }
@@ -86,10 +86,13 @@ class MainActivity : AppCompatActivity() {
             override fun onCancelled(databaseError: DatabaseError) {}
         })
 
+        //jugador2 obtiene los datos del jugador1
         myRefPlayer1.addValueEventListener(object : ValueEventListener{
             override fun onCancelled(databaseError: DatabaseError) {}
             override fun onDataChange(snapshot: DataSnapshot) {
-                textViewUsername1.text = snapshot.getValue<Player>()!!.getUsername()
+                var username1 = snapshot.getValue<Player>()!!.getUsername()
+                textViewUsername1.text = username1
+                game.setPlayer1(username1)
             }
 
         })
@@ -173,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         var id = getIdButton(button.id)
         var value = game.getTurn().getSymbol()
 
-        game.movement(id.toInt())
+        game.movement(id)
 
         /*if (game.getPlayer1().getUsername() == game.getTurn())
             value = 1

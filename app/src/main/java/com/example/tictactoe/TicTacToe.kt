@@ -35,13 +35,18 @@ class TicTacToe() {
     fun getTurn(): Player{
         return this.turn
     }
+    fun setTurn(username: String){
+        if (username == player1.getUsername()) turn = player1 else turn = player2
+    }
     fun changeTurn(){
         if (turn == player1) turn = player2 else turn = player1
     }
-    fun movement(position: Int){ //act gameboard
-        gameboard[position.toString()] = turn.getSymbol()
-        Log.i("ERROR", "value: ${gameboard[position.toString()].toString()}")
-        Log.i("ERROR", "Tic: ${gameboard.toString()}")
+    fun movement(position: String){ //act gameboard
+        Log.i("ERROR", "Position: ${position}")
+        gameboard[position] = turn.getSymbol()
+        Log.i("ERROR", "username= ${turn.getUsername()}")
+        Log.i("ERROR", "Value g[]= ${gameboard[position.toString()].toString()}")
+        Log.i("ERROR", "g= ${gameboard.toString()}")
         //return gameboard[position.toString()]!!.toInt()
     }
 
