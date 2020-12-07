@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
 import kotlinx.android.synthetic.main.activity_main.*
@@ -17,8 +18,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var myRefPlayer2: DatabaseReference
     lateinit var myRefPlayer1: DatabaseReference
     lateinit var myRefTurn: DatabaseReference
+    lateinit var myRefGameover: DatabaseReference
     var game = TicTacToe()
     var username = ""
+    val context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,15 +41,30 @@ class MainActivity : AppCompatActivity() {
             joinGameroom(username,code)
         }
 
+        //cuando el valor cambie notifica que acabo el juego
+        myRefGameover.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val gameover = dataSnapshot.getValue().toString().toInt()
+                var title = ""
+                var message = ""
+                if (gameover == 1){
+                    
+                }
+                else {
+                    enableGameboard(false)
+                }
+            }
+            override fun onCancelled(databaseError: DatabaseError) {}
+        })
+
+        //cada vez que se actualiza el gameboard
         myRefGameboard.addChildEventListener(object : ChildEventListener {
             override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
-                val newComment = dataSnapshot.getValue()
-                val commentKey = dataSnapshot.key!!.toString()
-                Log.i("ERROR","keyDS: $commentKey")
-                game.movement(commentKey)
+                val position = dataSnapshot.key!!.toString() //obtiene la posicion del gameboard
+                Log.i("ERROR","keyDS: $position")
+                game.movement(position) //agrega el movimiento
                 updateGameboard()
-                enableGameboard(game.getTurn().getUsername() == username)
-                //Log.i("ERROR", "value: ${game.getTurn().getUsername() == username}")
+                enableGameboard(game.getTurn().getUsername() == username) //habilita o deshabilita el gameboard
             }
             override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
@@ -54,7 +72,7 @@ class MainActivity : AppCompatActivity() {
             override fun onCancelled(databaseError: DatabaseError) {}
         })
 
-        //cada vez que se actualiza el juego
+        //cada vez que se actualiza el turno del juego
         myRefTurn.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val turn = dataSnapshot.getValue().toString()
@@ -62,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 if (turn == username){
                     enableGameboard(true)
                 }
-                else{
+                else {
                     enableGameboard(false)
                 }
             }
@@ -77,7 +95,6 @@ class MainActivity : AppCompatActivity() {
                     textViewUsername2.text = usernamePlayer2
                     game.setPlayer2(usernamePlayer2)
                 }
-                //aqui tienen que habilitarse los botones del tablero con enableButtons()
                 startGame()
             }
             override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {}
@@ -94,10 +111,7 @@ class MainActivity : AppCompatActivity() {
                 textViewUsername1.text = username1
                 game.setPlayer1(username1)
             }
-
         })
-
-
     }
 
     fun createGameroom(username: String){//crea la estructura de la sala de juego en la BD
@@ -112,14 +126,17 @@ class MainActivity : AppCompatActivity() {
         //agrega nodos a la estructura de sala de juego
         myRef.child("player1").setValue(game.getPlayer1())
         myRef.child("player2").setValue(game.getPlayer2())
+        myRef.child("Gameover").setValue("0")
         myRef.child("turn").setValue("")
         myRef.child("gameboard").setValue(game.getGameboard())
         myRefGameboard = myRef.child("gameboard")
 
-        //refrencia del turno
+        //referencia gameover
+        myRefGameover = myRef.child("Gameover")
+        //referencia del turno
         myRefTurn = myRef.child("turn")
 
-        //refrencia de jugadores para cuando se una
+        //referencia de jugadores para cuando se una
         myRefPlayer1 = myRef.child("player1")
         myRefPlayer2 = myRef.child("player2")
     }
@@ -170,25 +187,55 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun buttonClick(view: View){
+        //transforma la vista en boton
         var button: Button = view as Button
-        button.isEnabled = false
+
         //obtener el id del boton y cambiar el texto del boton con la marca del jugador
         var id = getIdButton(button.id)
         var value = game.getTurn().getSymbol()
 
-        game.movement(id)
-
-        /*if (game.getPlayer1().getUsername() == game.getTurn())
-            value = 1
-        else
-            value = 2*/
+        //no sale hasta que presiona un boton correcto
+        while (!game.movement(id)){
+            game.movement(id)
+        }
+        button.isEnabled = false
 
         //agregar el valor a la BD
         myRefGameboard.child(id).setValue(value)
 
-        game.changeTurn() //cambia turno
-        myRefTurn.setValue(game.getTurn().getUsername()) //agrega el turno a la estructura
-        enableGameboard(username == game.getTurn().getUsername()) //deshabilita o habilita gameboard
+        if (!game.isGameover() && !game.isFull()){
+            game.changeTurn() //cambia turno
+            myRefTurn.setValue(game.getTurn().getUsername()) //agrega el turno a la estructura
+            enableGameboard(username == game.getTurn().getUsername()) //deshabilita o habilita gameboard
+            textViewPoints1.setText("juego continua")
+        }
+        else if (game.isGameover()){
+            textViewPoints1.setText("Gano: ${game.getTurn().getUsername()}")
+            myRefTurn.setValue("")
+            /*MaterialAlertDialogBuilder(context)
+                .setTitle("WINNER")
+                .setMessage(game.getTurn().getUsername())
+                .setNegativeButton("Finish") { dialog, which ->
+                    // Respond to negative button press
+                }
+                .setPositiveButton("Accept") { dialog, which ->
+                    // Respond to positive button press
+                }
+                .show()*/
+        }
+        else if (!game.isGameover() && game.isFull()){
+            textViewPoints1.setText("Empate")
+            /*MaterialAlertDialogBuilder(context)
+                .setTitle("TIE")
+                .setMessage("IT´S A TIE")
+                .setNegativeButton("Finish") { dialog, which ->
+                    // Respond to negative button press
+                }
+                .setPositiveButton("Accept") { dialog, which ->
+                    // Respond to positive button press
+                }
+                .show()*/
+        }
     }
 
     fun getIdButton(idButton: Int): String = when(idButton){
@@ -204,9 +251,16 @@ class MainActivity : AppCompatActivity() {
         else -> {"-1"}
     }
 
+    fun messageGameover(title: String, message: String, forPlayer: String){
+        if (forPlayer == game.getPlayer1().getUsername()){
+
+        }
+        else{
+
+        }
+    }
+
     fun startGame(){
-        //myRefPlayer1.child("username").setValue("")
-        //myRefPlayer1.child("username").setValue(game.getPlayer1().getUsername())
         game.startGame()
         myRefTurn.setValue(game.getTurn().getUsername())
         if (game.getTurn().getUsername() == username)

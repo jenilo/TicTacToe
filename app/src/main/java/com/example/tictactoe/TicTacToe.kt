@@ -41,15 +41,14 @@ class TicTacToe() {
     fun changeTurn(){
         if (turn == player1) turn = player2 else turn = player1
     }
-    fun movement(position: String){ //act gameboard
-        //Log.i("ERROR", "Position: ${position}")
+    fun movement(position: String): Boolean{ //act gameboard
         //evita sobreescribir un dato
-        if (gameboard[position] == 0)
+        if (gameboard[position] == 0) {
             gameboard[position] = turn.getSymbol()
-        //Log.i("ERROR", "username= ${turn.getUsername()}")
-        //Log.i("ERROR", "Value g[]= ${gameboard[position.toString()].toString()}")
-        //Log.i("ERROR", "g= ${gameboard.toString()}")
-        //return gameboard[position.toString()]!!.toInt()
+            return true
+        }
+        else
+            return false
     }
 
     fun isGameover(): Boolean{
@@ -66,6 +65,14 @@ class TicTacToe() {
         if (diagonalLineRight())
             return true
         return false
+    }
+
+    fun isFull(): Boolean{
+        for(position in gameboard){
+            if (position.value == 0)
+                return false
+        }
+        return true
     }
 
     fun resetGameboard(){

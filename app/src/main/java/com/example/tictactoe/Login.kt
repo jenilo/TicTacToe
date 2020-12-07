@@ -38,7 +38,6 @@ class Login : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 buttonJoinGameroom.isEnabled = (s.length == 4 && buttonCreateGameroom.isEnabled)
-                //Log.i("ERROR", "value button: ${buttonJoinGameroom.isEnabled}, string: ${s.length}")
             }
         })
 
