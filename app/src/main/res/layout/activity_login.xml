@@ -11,17 +11,16 @@
         android:id="@+id/inputUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="72dp"
         android:ems="10"
         android:hint="Username"
         android:inputType="textPersonName"
         android:textColor="#FFFFFF"
         android:textColorHint="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.487"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.252" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/buttonCreateGameroom"
@@ -32,12 +31,27 @@
         android:paddingTop="30dp"
         android:paddingRight="50dp"
         android:paddingBottom="30dp"
-        android:text="UNIR A SALA"
+        android:text="CREATE GAMEROOM"
         android:textColor="#FFFFFF"
         app:backgroundTint="@color/coral"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/inputUsername" />
+
+
+    <EditText
+        android:id="@+id/editTextCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="55dp"
+        android:ems="10"
+        android:hint="CODE"
+        android:inputType="textPersonName"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonCreateGameroom" />
 
     <Button
         android:id="@+id/buttonJoinGameroom"
@@ -48,11 +62,11 @@
         android:paddingTop="30dp"
         android:paddingRight="50dp"
         android:paddingBottom="30dp"
-        android:text="UNIR A SALA"
+        android:text="JOIN GAMEROOM"
         android:textColor="#FFFFFF"
         app:backgroundTint="@color/yellow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonCreateGameroom" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextCode"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
