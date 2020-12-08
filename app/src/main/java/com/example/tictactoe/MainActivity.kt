@@ -20,7 +20,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var myRefPlayer1: DatabaseReference
     lateinit var myRefTurn: DatabaseReference
     lateinit var myRefGameover: DatabaseReference
-    lateinit var myRefConfirm: DatabaseReference
     var game = TicTacToe()
     var username = ""
     lateinit var dialogShowCode: AlertDialog.Builder
@@ -44,13 +43,10 @@ class MainActivity : AppCompatActivity() {
             joinGameroom(username,code)
         }
 
-
-
         //cuando el valor cambie notifica que acabo el juego
         myRefGameover.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val gameoverBy = dataSnapshot.getValue().toString().toInt() //obtiene quien gano
-                game.setWinner(gameoverBy)
                 var title = "You win"
                 var message = ""
                 if (gameoverBy == 3){ //empate
@@ -69,25 +65,17 @@ class MainActivity : AppCompatActivity() {
                     message = "You lost against $loser"
                 }
                 if (gameoverBy != 0){ //manda el mensaje si ya termino el juego
+                    game.setWinner(gameoverBy)
                     messageGameover(title,message,username)//dialog
                     enableGameboard(false) //deshabilita el tablero
                 }
-            }
-            override fun onCancelled(databaseError: DatabaseError) {}
-        })
-
-        //jugador 1 confirma nuevo juego o salida
-        myRefConfirm.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val confirm = dataSnapshot.getValue().toString().toInt()
-                Log.i("ERROR","confirm: $confirm")
-                Log.i("ERROR","winner Actual: ${game.getWinner()}")
-                if (confirm != 0 && game.getWinner() != 0){
-                    when(confirm){
-                        1 -> finish()
-                        2 -> restartGame()
-                    }
+                if (gameoverBy == 0 && game.getWinner() != 0){ //si el jugador 1 reinicia la sala
+                    restartGame()
                 }
+                else if (gameoverBy == -1){ //si el jugador 1 cancela la sala de juego
+                    finish()
+                }
+
             }
             override fun onCancelled(databaseError: DatabaseError) {}
         })
@@ -97,7 +85,6 @@ class MainActivity : AppCompatActivity() {
             override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
                 val position = dataSnapshot.key!!.toString() //obtiene la posicion del gameboard
                 val value = dataSnapshot.value!!.toString().toInt() //valor actualizado
-                //Log.i("ERROR","keyDS: $position")
                 if (value != 0){
                     var update = game.movement(position) //agrega el movimiento
                     if (update) updateGameboard(position)
@@ -154,13 +141,11 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun turnImage(){
-        if (game.getTurn() == game.getPlayer1()){
+    fun turnImage(){ //cambia la imagen segun el turno
+        if (game.getTurn() == game.getPlayer1())
             imageViewTurn.setImageResource(R.mipmap.img_left_foreground)
-        }
-        else if (game.getTurn() == game.getPlayer2()){
+        else
             imageViewTurn.setImageResource(R.mipmap.img_right_foreground)
-        }
     }
     fun createGameroom(username: String){//crea la estructura de la sala de juego en la BD
         database = FirebaseDatabase.getInstance() //obtiene la BD
@@ -177,17 +162,11 @@ class MainActivity : AppCompatActivity() {
         myRef.child("Gameover").setValue(0)
         myRef.child("turn").setValue("")
         myRef.child("gameboard").setValue(game.getGameboard())
+
+        //referencias
         myRefGameboard = myRef.child("gameboard")
-
-        myRef.child("confirm").setValue(0)
-        myRefConfirm = myRef.child("confirm")
-
-        //referencia gameover
         myRefGameover = myRef.child("Gameover")
-        //referencia del turno
         myRefTurn = myRef.child("turn")
-
-        //referencia de jugadores
         myRefPlayer1 = myRef.child("player1")
         myRefPlayer2 = myRef.child("player2")
 
@@ -200,15 +179,14 @@ class MainActivity : AppCompatActivity() {
 
         game.setPlayer2(username)
 
-        //refrencia al tablero
+        //referencias
         myRefGameboard = myRef.child("gameboard")
         myRefGameover = myRef.child("Gameover")
         myRefPlayer1 = myRef.child("player1")
         myRefPlayer2 = myRef.child("player2")
         myRefTurn = myRef.child("turn")
-        //refrencia del jugador2
+        //valor jugador 2
         myRefPlayer2.setValue(game.getPlayer2())
-        myRefConfirm = myRef.child("confirm")
 
     }
 
@@ -306,10 +284,12 @@ class MainActivity : AppCompatActivity() {
 
         if (forPlayer == game.getPlayer1().getUsername()){ //solo el jugador1 puede decidir si seguir o salir
             builder.setPositiveButton("New game") { dialog, which ->
-                myRefConfirm.setValue(2)
+                //myRefConfirm.setValue(2)
+                myRefGameover.setValue(0)
             }
             builder.setNegativeButton("Exit") { dialog, which ->
-                myRefConfirm.setValue(1)
+                //myRefConfirm.setValue(1)
+                myRefGameover.setValue(-1)
                 finish()
             }
         }
@@ -322,15 +302,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun restartGame(){
-        //game.resetGameboard()
         game.restartGame()
         myRefGameboard.setValue(game.getGameboard())
         resetgameboard()
-        //myRefTurn.setValue(game.getTurn().getUsername())
         enableGameboard(game.getTurn().getUsername() == username)
         myRefGameover.setValue(0)
-        myRefConfirm.setValue(0)
-        Log.i("ERROR", "${game.getGameboard().toString()}")
     }
 
     fun startGame(){
