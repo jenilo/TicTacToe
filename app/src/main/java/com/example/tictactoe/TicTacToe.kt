@@ -82,7 +82,7 @@ class TicTacToe() {
         return true
     }
 
-    fun restartGame(){
+    /*fun restartGame(){
         resetGameboard()
         winner = 0
     }
@@ -99,7 +99,7 @@ class TicTacToe() {
                 "7" to 0,
                 "8" to 0
         )
-    }
+    }*/
 
     fun getGameboard(): Map<String,Int>{
         return this.gameboard

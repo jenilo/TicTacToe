@@ -184,7 +184,6 @@ class MainActivity : AppCompatActivity() {
         myRefPlayer2 = myRef.child("player2")
         myRefTurn = myRef.child("turn")
         //refrencia del jugador2
-
         myRefPlayer2.setValue(game.getPlayer2())
 
     }
@@ -280,19 +279,19 @@ class MainActivity : AppCompatActivity() {
         builder.setTitle(title)
         builder.setMessage(message)
 
-        if (forPlayer == game.getPlayer1().getUsername()){ //solo el jugador1 puede decidir si seguir o salir
+        /*if (forPlayer == game.getPlayer1().getUsername()){ //solo el jugador1 puede decidir si seguir o salir
             builder.setPositiveButton("New game") { dialog, which ->
                 restartGame()
             }
             builder.setNegativeButton("Exit") { dialog, which ->
                 finish()
             }
-        }
-        builder.setCancelable(false)
+        }*/
+        builder.setCancelable(false)  //no se puede salir del dialog
         builder.show()
     }
 
-    fun restartGame(){
+    /*fun restartGame(){
         //game.resetGameboard()
         game.restartGame()
         myRefGameboard.setValue(game.getGameboard())
@@ -300,7 +299,7 @@ class MainActivity : AppCompatActivity() {
         //myRefTurn.setValue(game.getTurn().getUsername())
         enableGameboard(game.getTurn().getUsername() == username)
         myRefGameover.setValue(0)
-    }
+    }*/
 
     fun startGame(){
         game.startGame()
@@ -314,21 +313,21 @@ class MainActivity : AppCompatActivity() {
         dialogShowCode = AlertDialog.Builder(this)
         dialogShowCode.setTitle("Your code is...")
         dialogShowCode.setMessage("$code")
-        dialogShowCode.setCancelable(false)
+        dialogShowCode.setCancelable(false) //no puede salir del dialog
         dialogShowCode.create()
         dialogShowCode.setNegativeButton("OK", DialogInterface.OnClickListener { dialog, id ->
         })
         dialogShowCode.show()
         d = dialogShowCode.create();
         d.show();
-        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
+        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false); //deshabilita el boton de ok
     }
 
-    fun resetgameboard(){
+    /*fun resetgameboard(){
         for (i in 0..8){
             changeButton(i,0)
         }
-    }
+    }*/
 
     fun updateGameboard(position: String){
         var symbol = game.getGameboard()[position]
