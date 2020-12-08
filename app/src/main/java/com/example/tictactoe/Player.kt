@@ -2,15 +2,8 @@ package com.example.tictactoe
 
 class Player() {
     private var username: String = ""
-    private var symbol: Int = 0
-    /*private var points: Int = 0
+    private var symbol: Int = 0 //identifica si es el jugador 1 o 2
 
-    fun addPoints(){
-        points += 10
-    }
-    fun getPoints(): Int{
-        return points
-    }*/
     fun setUsername(username: String) {
         this.username = username
     }

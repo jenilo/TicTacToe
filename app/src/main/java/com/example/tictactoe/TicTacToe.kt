@@ -74,12 +74,17 @@ class TicTacToe() {
         return false
     }
 
-    fun isFull(): Boolean{
+    fun isGameboardFull(): Boolean{
         for(position in gameboard){
             if (position.value == 0)
                 return false
         }
         return true
+    }
+
+    fun restartGame(){
+        resetGameboard()
+        winner = 0
     }
 
     fun resetGameboard(){
@@ -106,11 +111,13 @@ class TicTacToe() {
         return player2
     }
 
+    //verifica lineas horizontales de x posicion
     fun horizontalLine(position: Int): Boolean{
         return gameboard[position.toString()]==turn.getSymbol() &&
                 gameboard[(position+1).toString()]==turn.getSymbol() &&
                 gameboard[(position+2).toString()]==turn.getSymbol()
     }
+    //verifica lineas verticales de x posicion
     fun verticalLine(position: Int): Boolean{
         return gameboard[position.toString()]==turn.getSymbol() &&
                 gameboard[(position+3).toString()]==turn.getSymbol() &&

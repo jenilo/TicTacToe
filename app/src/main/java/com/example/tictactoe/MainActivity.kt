@@ -7,8 +7,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.DialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
 import kotlinx.android.synthetic.main.activity_main.*
@@ -66,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                     var loser = if (gameoverBy == 1) game.getPlayer1().getUsername() else game.getPlayer2().getUsername()
                     message = "You lost against $loser"
                 }
-                if (gameoverBy != 0){
+                if (gameoverBy != 0){ //manda el mensaje si ya termino el juego
                     messageGameover(title,message,username)//dialog
                     enableGameboard(false) //deshabilita el tablero
                 }
@@ -78,10 +76,14 @@ class MainActivity : AppCompatActivity() {
         myRefGameboard.addChildEventListener(object : ChildEventListener {
             override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
                 val position = dataSnapshot.key!!.toString() //obtiene la posicion del gameboard
+                val value = dataSnapshot.value!!.toString().toInt() //valor actualizado
                 //Log.i("ERROR","keyDS: $position")
-                var update = game.movement(position) //agrega el movimiento
-                if (update) updateGameboard(position)
-                enableGameboard(game.getTurn().getUsername() == username) //habilita o deshabilita el gameboard
+                if (value != 0){
+                    var update = game.movement(position) //agrega el movimiento
+                    if (update) updateGameboard(position)
+                    enableGameboard(game.getTurn().getUsername() == username) //habilita o deshabilita el gameboard
+                }
+
             }
             override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
@@ -94,6 +96,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val turn = dataSnapshot.getValue().toString()
                 game.setTurn(turn)
+                turnImage()
                 if (turn == username){
                     enableGameboard(true)
                 }
@@ -131,6 +134,14 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    fun turnImage(){
+        if (game.getTurn() == game.getPlayer1()){
+            imageViewTurn.setImageResource(R.mipmap.img_left_foreground)
+        }
+        else if (game.getTurn() == game.getPlayer2()){
+            imageViewTurn.setImageResource(R.mipmap.img_right_foreground)
+        }
+    }
     fun createGameroom(username: String){//crea la estructura de la sala de juego en la BD
         database = FirebaseDatabase.getInstance() //obtiene la BD
         var myRef = database.getReference().push() //referencia de donde va a colocar
@@ -193,17 +204,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun changeButton(idButton: Int, symbol: Int){//recibe el id del boton y habilita o deshabilita
-        /*when(idButton){
-            0 -> button0.text = symbol
-            1 -> button1.text = symbol
-            2 -> button2.text = symbol
-            3 -> button3.text = symbol
-            4 -> button4.text = symbol
-            5 -> button5.text = symbol
-            6 -> button6.text = symbol
-            7 -> button7.text = symbol
-            8 -> button8.text = symbol
-        }*/
         when(idButton){
             0 -> button0.setBackgroundResource(symbol)
             1 -> button1.setBackgroundResource(symbol)
@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity() {
         //agregar el valor a la BD
         myRefGameboard.child(id).setValue(value)
 
-        if (!game.isGameover() && !game.isFull()){
+        if (!game.isGameover() && !game.isGameboardFull()){
             game.changeTurn() //cambia turno
             myRefTurn.setValue(game.getTurn().getUsername()) //agrega el turno a la estructura
             enableGameboard(username == game.getTurn().getUsername()) //deshabilita o habilita gameboard
@@ -255,7 +255,7 @@ class MainActivity : AppCompatActivity() {
             game.setWinner(winner)
             myRefGameover.setValue(game.getWinner())
         }
-        else if (!game.isGameover() && game.isFull()){
+        else if (!game.isGameover() && game.isGameboardFull()){
             //textViewPoints1.setText("Empate")
             game.setWinner(3)
             myRefGameover.setValue(game.getWinner())
@@ -275,21 +275,31 @@ class MainActivity : AppCompatActivity() {
         else -> {"-1"}
     }
 
-    fun messageGameover(title: String, message: String, forPlayer: String){
+    fun messageGameover(title: String, message: String, forPlayer: String){//mensaje de fin de juego con dialog
         val builder = AlertDialog.Builder(this)
         builder.setTitle(title)
         builder.setMessage(message)
 
-        if (forPlayer == game.getPlayer1().getUsername()){
-            //textViewPoints1.setText("Gano: ${game.getTurn().getUsername()}")
-            //textViewPoints1.setText("${title}")
+        if (forPlayer == game.getPlayer1().getUsername()){ //solo el jugador1 puede decidir si seguir o salir
             builder.setPositiveButton("New game") { dialog, which ->
-                //makesometing
+                restartGame()
             }
             builder.setNegativeButton("Exit") { dialog, which ->
+                finish()
             }
         }
+        builder.setCancelable(false)
         builder.show()
+    }
+
+    fun restartGame(){
+        //game.resetGameboard()
+        game.restartGame()
+        myRefGameboard.setValue(game.getGameboard())
+        resetgameboard()
+        //myRefTurn.setValue(game.getTurn().getUsername())
+        enableGameboard(game.getTurn().getUsername() == username)
+        myRefGameover.setValue(0)
     }
 
     fun startGame(){
@@ -314,24 +324,18 @@ class MainActivity : AppCompatActivity() {
         d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
     }
 
+    fun resetgameboard(){
+        for (i in 0..8){
+            changeButton(i,0)
+        }
+    }
+
     fun updateGameboard(position: String){
-        //var gameboard = game.getGameboard()
-        Log.i("ERROR","Estoy aqui")
         var symbol = game.getGameboard()[position]
         if (symbol==1)
             changeButton(position.toInt(), R.mipmap.x_foreground)
         else
             changeButton(position.toInt(), R.mipmap.o_foreground)
-
-        /*for (position in gameboard){
-            if (position.value == game.getPlayer1().getSymbol()){
-
-                changeButton(position.key.toInt(), "x")
-            }
-            else if (position.value == game.getPlayer2().getSymbol()) {
-                changeButton(position.key.toInt(), "o")
-            }
-        }*/
     }
     fun enableGameboard(state: Boolean){
         var gameboard = game.getGameboard()
