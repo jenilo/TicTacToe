@@ -20,7 +20,14 @@ class TicTacToe() {
         "8" to 0
     )
     private var turn = Player()
+    private var winner = 0
 
+    fun setWinner(winner: Int){
+        this.winner = winner
+    }
+    fun getWinner(): Int{
+        return winner
+    }
     fun setPlayer1(username: String){
         this.player1.setUsername(username)
         this.player1.setSymbol(1)
@@ -43,6 +50,7 @@ class TicTacToe() {
     }
     fun movement(position: String): Boolean{ //act gameboard
         //evita sobreescribir un dato
+        Log.i("ERROR","gameboard: ${gameboard}")
         if (gameboard[position] == 0) {
             gameboard[position] = turn.getSymbol()
             return true
@@ -52,7 +60,7 @@ class TicTacToe() {
     }
 
     fun isGameover(): Boolean{
-        for (pos in 0..2){
+        for (pos in 0..6 step 3){
             if (horizontalLine(pos))
                 return true
         }
