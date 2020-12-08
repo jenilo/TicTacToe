@@ -1,16 +1,17 @@
 package com.example.tictactoe
 
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
 import kotlinx.android.synthetic.main.activity_main.*
-import java.text.FieldPosition
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +24,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var myRefGameover: DatabaseReference
     var game = TicTacToe()
     var username = ""
-    //var dialogShowCode = AlertDialog.Builder(this)
+    lateinit var dialogShowCode: AlertDialog.Builder
+    lateinit var d: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,9 +112,6 @@ class MainActivity : AppCompatActivity() {
                     textViewUsername2.text = usernamePlayer2
                     game.setPlayer2(usernamePlayer2)
                 }
-                //dialogShowCode.setOnCancelListener {
-
-                //}
                 startGame()
             }
             override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {}
@@ -154,14 +153,11 @@ class MainActivity : AppCompatActivity() {
         //referencia del turno
         myRefTurn = myRef.child("turn")
 
-        //referencia de jugadores para cuando se una
+        //referencia de jugadores
         myRefPlayer1 = myRef.child("player1")
         myRefPlayer2 = myRef.child("player2")
 
-        var dialogShowCode = AlertDialog.Builder(this)
-        dialogShowCode.setTitle("Your code is...")
-        dialogShowCode.setMessage("$code")
-        dialogShowCode.show()
+        messageCode(code) //dialog con el codigo de sala
     }
 
     fun joinGameroom(username: String, code: String){
@@ -301,6 +297,21 @@ class MainActivity : AppCompatActivity() {
         myRefTurn.setValue(game.getTurn().getUsername())
         if (game.getTurn().getUsername() == username)
             enableGameboard(true)
+        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true); //habilita el boton para cerrar el dialog del codigo
+    }
+
+    fun messageCode(code: String){
+        dialogShowCode = AlertDialog.Builder(this)
+        dialogShowCode.setTitle("Your code is...")
+        dialogShowCode.setMessage("$code")
+        dialogShowCode.setCancelable(false)
+        dialogShowCode.create()
+        dialogShowCode.setNegativeButton("OK", DialogInterface.OnClickListener { dialog, id ->
+        })
+        dialogShowCode.show()
+        d = dialogShowCode.create();
+        d.show();
+        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
     }
 
     fun updateGameboard(position: String){

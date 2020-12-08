@@ -50,7 +50,6 @@ class TicTacToe() {
     }
     fun movement(position: String): Boolean{ //act gameboard
         //evita sobreescribir un dato
-        Log.i("ERROR","gameboard: ${gameboard}")
         if (gameboard[position] == 0) {
             gameboard[position] = turn.getSymbol()
             return true
