@@ -36,8 +36,14 @@ class TicTacToe() {
         this.player2.setUsername(username)
         this.player2.setSymbol(2)
     }
-    fun startGame(){
-        this.turn = this.player1
+    fun getGameboard(): Map<String,Int>{
+        return this.gameboard
+    }
+    fun getPlayer1(): Player{
+        return player1
+    }
+    fun getPlayer2(): Player{
+        return player2
     }
     fun getTurn(): Player{
         return this.turn
@@ -47,6 +53,9 @@ class TicTacToe() {
     }
     fun changeTurn(){
         if (turn == player1) turn = player2 else turn = player1
+    }
+    fun startGame(){
+        this.turn = this.player1
     }
     fun movement(position: String): Boolean{ //act gameboard
         //evita sobreescribir un dato
@@ -97,34 +106,24 @@ class TicTacToe() {
         winner = 0
     }
 
-    fun getGameboard(): Map<String,Int>{
-        return this.gameboard
-    }
-    fun getPlayer1(): Player{
-        return player1
-    }
-    fun getPlayer2(): Player{
-        return player2
-    }
-
     //verifica lineas horizontales de x posicion
-    fun horizontalLine(position: Int): Boolean{
+    private fun horizontalLine(position: Int): Boolean{
         return gameboard[position.toString()]==turn.getSymbol() &&
                 gameboard[(position+1).toString()]==turn.getSymbol() &&
                 gameboard[(position+2).toString()]==turn.getSymbol()
     }
     //verifica lineas verticales de x posicion
-    fun verticalLine(position: Int): Boolean{
+    private fun verticalLine(position: Int): Boolean{
         return gameboard[position.toString()]==turn.getSymbol() &&
                 gameboard[(position+3).toString()]==turn.getSymbol() &&
                 gameboard[(position+6).toString()]==turn.getSymbol()
     }
-    fun diagonalLineLeft(): Boolean{
+    private fun diagonalLineLeft(): Boolean{
         return gameboard["0"]==turn.getSymbol() &&
                 gameboard["4"]==turn.getSymbol() &&
                 gameboard["8"]==turn.getSymbol()
     }
-    fun diagonalLineRight(): Boolean{
+    private fun diagonalLineRight(): Boolean{
         return gameboard["2"]==turn.getSymbol() &&
                 gameboard["4"]==turn.getSymbol() &&
                 gameboard["6"]==turn.getSymbol()

@@ -141,12 +141,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun turnImage(){ //cambia la imagen segun el turno
-        if (game.getTurn() == game.getPlayer1())
-            imageViewTurn.setImageResource(R.mipmap.img_left_foreground)
-        else
-            imageViewTurn.setImageResource(R.mipmap.img_right_foreground)
-    }
     fun createGameroom(username: String){//crea la estructura de la sala de juego en la BD
         database = FirebaseDatabase.getInstance() //obtiene la BD
         var myRef = database.getReference().push() //referencia de donde va a colocar
@@ -190,6 +184,128 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun buttonClick(view: View){
+        //transforma la vista en boton
+        var button: Button = view as Button
+
+        //obtener el id del boton y cambiar el texto del boton con la marca del jugador
+        var id = getIdButton(button.id)
+        var value = game.getTurn().getSymbol()
+
+        //no sale hasta que presiona un boton correcto
+        while (!game.movement(id)){
+            game.movement(id)
+        }
+        updateGameboard(id)
+        button.isEnabled = false
+
+        //agregar el valor a la BD
+        myRefGameboard.child(id).setValue(value)
+
+        if (!game.isGameover() && !game.isGameboardFull()){
+            game.changeTurn() //cambia turno
+            myRefTurn.setValue(game.getTurn().getUsername()) //agrega el turno a la estructura
+            enableGameboard(false) //deshabilita o habilita gameboard
+        }
+        else if (game.isGameover()){
+            var winner = 0
+            if (game.getTurn().getUsername() == game.getPlayer1().getUsername()) {
+                winner = 1
+            }
+            else {
+                winner = 2
+            }
+            game.setWinner(winner)
+            myRefGameover.setValue(game.getWinner())
+        }
+        else if (!game.isGameover() && game.isGameboardFull()){
+            game.setWinner(3)
+            myRefGameover.setValue(game.getWinner())
+        }
+    }
+
+    fun startGame(){
+        game.startGame()
+        myRefTurn.setValue(game.getTurn().getUsername())
+        if (game.getTurn().getUsername() == username)
+            enableGameboard(true)
+        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true); //habilita el boton para cerrar el dialog del codigo
+    }
+
+    fun restartGame(){
+        game.restartGame()
+        myRefGameboard.setValue(game.getGameboard())
+        resetgameboard()
+        enableGameboard(game.getTurn().getUsername() == username)
+    }
+
+    fun messageCode(code: String){
+        dialogShowCode = AlertDialog.Builder(this)
+        dialogShowCode.setTitle("Your code is...")
+        dialogShowCode.setMessage("$code")
+        dialogShowCode.setCancelable(false) //no puede salir del dialog
+        dialogShowCode.create()
+        dialogShowCode.setNegativeButton("OK", DialogInterface.OnClickListener { dialog, id ->
+        })
+        dialogShowCode.show()
+        d = dialogShowCode.create();
+        d.show();
+        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false); //deshabilita el boton de ok
+    }
+
+    fun messageGameover(title: String, message: String, forPlayer: String){//mensaje de fin de juego con dialog
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(title)
+        builder.setMessage(message)
+
+        if (forPlayer == game.getPlayer1().getUsername()){ //solo el jugador1 puede decidir si seguir o salir
+            builder.setPositiveButton("New game") { dialog, which ->
+                //myRefConfirm.setValue(2)
+                myRefGameover.setValue(0)
+            }
+            builder.setNegativeButton("Exit") { dialog, which ->
+                //myRefConfirm.setValue(1)
+                myRefGameover.setValue(-1)
+                finish()
+            }
+        }
+        else{
+            builder.setPositiveButton("Ok"){ dialog, wich ->
+            }
+        }
+        builder.setCancelable(false)  //no se puede salir del dialog
+        builder.show()
+    }
+
+    fun resetgameboard(){
+        for (i in 0..8){
+            changeButton(i,0)
+        }
+    }
+
+    fun turnImage(){ //cambia la imagen segun el turno
+        if (game.getTurn() == game.getPlayer1())
+            imageViewTurn.setImageResource(R.mipmap.img_left_foreground)
+        else
+            imageViewTurn.setImageResource(R.mipmap.img_right_foreground)
+    }
+
+    fun updateGameboard(position: String){
+        var symbol = game.getGameboard()[position]
+        if (symbol==1)
+            changeButton(position.toInt(), R.mipmap.x_foreground)
+        else
+            changeButton(position.toInt(), R.mipmap.o_foreground)
+    }
+
+    fun enableGameboard(state: Boolean){
+        var gameboard = game.getGameboard()
+        for (position in gameboard){
+            if (position.value == 0)
+                stateButton(position.key.toInt(),state)
+        }
+    }
+
     fun stateButton(idButton: Int, state: Boolean){//recibe el id del boton y habilita o deshabilita
         when(idButton){
             0 -> button0.isEnabled = state
@@ -218,132 +334,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun buttonClick(view: View){
-        //transforma la vista en boton
-        var button: Button = view as Button
-
-        //obtener el id del boton y cambiar el texto del boton con la marca del jugador
-        var id = getIdButton(button.id)
-        var value = game.getTurn().getSymbol()
-
-        //no sale hasta que presiona un boton correcto
-        while (!game.movement(id)){
-            game.movement(id)
-        }
-        updateGameboard(id)
-        button.isEnabled = false
-
-        //agregar el valor a la BD
-        myRefGameboard.child(id).setValue(value)
-
-        if (!game.isGameover() && !game.isGameboardFull()){
-            game.changeTurn() //cambia turno
-            myRefTurn.setValue(game.getTurn().getUsername()) //agrega el turno a la estructura
-            enableGameboard(username == game.getTurn().getUsername()) //deshabilita o habilita gameboard
-        }
-        else if (game.isGameover()){
-            var winner = 0
-            if (game.getTurn().getUsername() == game.getPlayer1().getUsername()) {
-                winner = 1
-            }
-            else {
-                winner = 2
-            }
-            game.setWinner(winner)
-            myRefGameover.setValue(game.getWinner())
-        }
-        else if (!game.isGameover() && game.isGameboardFull()){
-            game.setWinner(3)
-            myRefGameover.setValue(game.getWinner())
-        }
-    }
-
     fun getIdButton(idButton: Int): String = when(idButton){
-            button0.id -> {"0"}
-            button1.id -> {"1"}
-            button2.id -> {"2"}
-            button3.id -> {"3"}
-            button4.id -> {"4"}
-            button5.id -> {"5"}
-            button6.id -> {"6"}
-            button7.id -> {"7"}
-            button8.id -> {"8"}
+        button0.id -> {"0"}
+        button1.id -> {"1"}
+        button2.id -> {"2"}
+        button3.id -> {"3"}
+        button4.id -> {"4"}
+        button5.id -> {"5"}
+        button6.id -> {"6"}
+        button7.id -> {"7"}
+        button8.id -> {"8"}
         else -> {"-1"}
     }
-
-    fun messageGameover(title: String, message: String, forPlayer: String){//mensaje de fin de juego con dialog
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(title)
-        builder.setMessage(message)
-
-        if (forPlayer == game.getPlayer1().getUsername()){ //solo el jugador1 puede decidir si seguir o salir
-            builder.setPositiveButton("New game") { dialog, which ->
-                //myRefConfirm.setValue(2)
-                myRefGameover.setValue(0)
-            }
-            builder.setNegativeButton("Exit") { dialog, which ->
-                //myRefConfirm.setValue(1)
-                myRefGameover.setValue(-1)
-                finish()
-            }
-        }
-        else{
-            builder.setPositiveButton("Ok"){ dialog, wich ->
-            }
-        }
-        builder.setCancelable(false)  //no se puede salir del dialog
-        builder.show()
-    }
-
-    fun restartGame(){
-        game.restartGame()
-        myRefGameboard.setValue(game.getGameboard())
-        resetgameboard()
-        enableGameboard(game.getTurn().getUsername() == username)
-        myRefGameover.setValue(0)
-    }
-
-    fun startGame(){
-        game.startGame()
-        myRefTurn.setValue(game.getTurn().getUsername())
-        if (game.getTurn().getUsername() == username)
-            enableGameboard(true)
-        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true); //habilita el boton para cerrar el dialog del codigo
-    }
-
-    fun messageCode(code: String){
-        dialogShowCode = AlertDialog.Builder(this)
-        dialogShowCode.setTitle("Your code is...")
-        dialogShowCode.setMessage("$code")
-        dialogShowCode.setCancelable(false) //no puede salir del dialog
-        dialogShowCode.create()
-        dialogShowCode.setNegativeButton("OK", DialogInterface.OnClickListener { dialog, id ->
-        })
-        dialogShowCode.show()
-        d = dialogShowCode.create();
-        d.show();
-        d.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false); //deshabilita el boton de ok
-    }
-
-    fun resetgameboard(){
-        for (i in 0..8){
-            changeButton(i,0)
-        }
-    }
-
-    fun updateGameboard(position: String){
-        var symbol = game.getGameboard()[position]
-        if (symbol==1)
-            changeButton(position.toInt(), R.mipmap.x_foreground)
-        else
-            changeButton(position.toInt(), R.mipmap.o_foreground)
-    }
-    fun enableGameboard(state: Boolean){
-        var gameboard = game.getGameboard()
-        for (position in gameboard){
-            if (position.value == 0)
-                stateButton(position.key.toInt(),state)
-        }
-    }
-
 }
