@@ -50,7 +50,7 @@
                 android:id="@+id/imageViewTurn"
                 android:layout_width="50dp"
                 android:layout_height="match_parent"
-                android:layout_weight=".5"
+                android:layout_weight="1"
                 app:srcCompat="@mipmap/img_left_foreground" />
         </LinearLayout>
 
