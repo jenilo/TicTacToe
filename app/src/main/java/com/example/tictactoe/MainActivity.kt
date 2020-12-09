@@ -244,21 +244,15 @@ class MainActivity : AppCompatActivity() {
         else if (game.isGameover()){
             var winner = 0
             if (game.getTurn().getUsername() == game.getPlayer1().getUsername()) {
-                /*game.getPlayer1().addPoints()
-                myRefPlayer1.child("points").setValue(game.getPlayer1().getPoints())*/
                 winner = 1
             }
             else {
-                /*game.getPlayer2().addPoints()
-                myRefPlayer1.child("points").setValue(game.getPlayer2().getPoints())*/
                 winner = 2
             }
             game.setWinner(winner)
             myRefGameover.setValue(game.getWinner())
         }
         else if (!game.isGameover() && game.isGameboardFull()){
-            //textViewPoints1.setText("Empate")
-            Log.i("ERROR","SI ENTRRE")
             game.setWinner(3)
             myRefGameover.setValue(game.getWinner())
         }
